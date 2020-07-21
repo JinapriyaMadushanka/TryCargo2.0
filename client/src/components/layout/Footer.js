@@ -2,8 +2,23 @@ import React from "react";
 
 export default () => {
   return (
-    <footer className="bg-dark text-white mt-5 p-4 text-center">
-      Copyright &copy; {new Date().getFullYear()} DevConnector
-    </footer>
+    <div
+      className="grey darken-3"
+      style={{
+        clear: "both",
+        bottom: "0",
+        width: "100%",
+      }}
+    >
+      <section className="section grey darken-3 white-text center">
+        <div className="container">
+          <div className="row">
+            <div className="col s12">
+              <h6>Copyright &copy; {new Date().getFullYear()} TryCargo</h6>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };

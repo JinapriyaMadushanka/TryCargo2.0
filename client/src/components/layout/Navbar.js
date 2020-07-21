@@ -1,102 +1,112 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
-import PropTypes from "prop-types";
+import logo from "../../images/logo.png";
 import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import M from "materialize-css/dist/js/materialize.min.js";
+
 import { logoutUser } from "../../actions/authActions";
-import { clearCurrentProfile } from "../../actions/profileActions";
 
 class Navbar extends Component {
-  onLogoutClick(e) {
-    e.preventDefault();
-    this.props.clearCurrentProfile();
-    this.props.logoutUser();
+  componentDidMount() {
+    document.addEventListener("DOMContentLoaded", function () {
+      var elems = document.querySelectorAll(".sidenav");
+      var instances = M.Sidenav.init(elems);
+    });
   }
-
   render() {
-    const { isAuthenticated, user } = this.props.auth;
-    const authLinks = (
-      <ul className="navbar-nav ml-auto">
-        <li className="nav-item">
-          <Link className="nav-link" to="/feed">
-            Post Feed
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" to="/dashboard">
-            Dashboard
-          </Link>
-        </li>
-        <li className="nav-item">
-          <a
-            href=""
-            onClick={this.onLogoutClick.bind(this)}
-            className="nav-link"
-          >
-            <img
-              className="rounded-circle"
-              src={user.avatar}
-              alt={user.name}
-              title="You must have a Gravatar connected to your email to display an image"
-              style={{ width: "25px", marginRight: "5px" }}
-            />{" "}
-            Logout
-          </a>
-        </li>
-      </ul>
-    );
-    const guestLinks = (
-      <ul className="navbar-nav ml-auto">
-        <li className="nav-item">
-          <Link className="nav-link" to="/register">
-            Sign Up
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" to="/login">
-            Login
-          </Link>
-        </li>
-      </ul>
-    );
+    const { isAuthenticated } = this.props.auth;
     return (
-      <nav className="navbar navbar-expand-sm navbar-dark bg-dark mb-4">
-        <div className="container">
-          <Link className="navbar-brand" to="/">
-            DevConnector
-          </Link>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-toggle="collapse"
-            data-target="#mobile-nav"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div className="collapse navbar-collapse" id="mobile-nav">
-            <ul className="navbar-nav mr-auto">
-              <li className="nav-item">
-                <Link className="nav-link" to="/profiles">
-                  {" "}
-                  Developers
-                </Link>
-              </li>
-            </ul>
-            {isAuthenticated ? authLinks : guestLinks}
-          </div>
+      <div>
+        <div className="navbar-fixed">
+          <nav className="grey darken-3">
+            <div className="container">
+              <div className="nav-wrapper">
+                <a href="#home" className="brand-logo white-text">
+                  <img src={logo}></img>
+                </a>
+                <a
+                  href="#"
+                  data-target="mobile-nav"
+                  className="sidenav-trigger"
+                >
+                  <i className="material-icons">menu</i>
+                </a>
+                <ul className="right hide-on-med-and-down">
+                  <li>
+                    <a href="#home" className="white-text">
+                      Home
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#search" className="white-text">
+                      Search
+                    </a>
+                  </li>
+                  {isAuthenticated && (
+                    <li>
+                      <a
+                        href="/"
+                        onClick={this.props.logoutUser}
+                        className="white-text"
+                      >
+                        Logout
+                      </a>
+                    </li>
+                  )}
+                  <li>
+                    <a href="#about" className="white-text">
+                      About
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#contact" className="white-text">
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </nav>
         </div>
-      </nav>
+        <ul className="sidenav" id="mobile-nav">
+          <li>
+            <a href="#home">Home</a>
+          </li>
+          <li>
+            <a href="#search">Search</a>
+          </li>
+
+          {isAuthenticated && (
+            <li>
+              <a
+                href="/"
+                onClick={this.props.logoutUser}
+                className="white-text"
+              >
+                Logout
+              </a>
+            </li>
+          )}
+
+          <li>
+            <a href="#about">About</a>
+          </li>
+          <li>
+            <a href="#contact">Contact</a>
+          </li>
+        </ul>
+      </div>
     );
   }
 }
 
 Navbar.propTypes = {
+  auth: PropTypes.object.isRequired,
   logoutUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired
 };
 
-const mapStateToProps = state => ({ auth: state.auth });
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
 
-export default connect(mapStateToProps, { logoutUser, clearCurrentProfile })(
-  Navbar
-);
+export default connect(mapStateToProps, { logoutUser })(Navbar);

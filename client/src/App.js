@@ -1,50 +1,56 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import jwt_decode from "jwt-decode";
-import setAuthToken from "./utils/setAuthToken";
-import { setCurrentUser, logoutUser } from "./actions/authActions";
 import { Provider } from "react-redux";
-import { clearCurrentProfile } from "./actions/profileActions";
-import store from "./store";
+import jwt_decode from "jwt-decode";
 
+//Import CSS module
+import "./App.css";
+
+//login/logout due to existance/expiration of the token
+import { setCurrentUser, logoutUser } from "./actions/authActions";
+
+//Access module for private routes
 import PrivateRoute from "./components/common/PrivateRoute";
 
+//Import React Components
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import Landing from "./components/layout/Landing";
-import Register from "./components/auth/Register";
-import Login from "./components/auth/Login";
-import Dashboard from "./components/dashboard/Dashboard";
-import CreateProfile from "./components/create-profile/CreateProfile";
-import EditProfile from "./components/edit-profile/EditProfile";
-import AddExperience from "./components/add-credentials/AddExperience";
-import AddEducation from "./components/add-credentials/AddEducation";
-import Profiles from "./components/profiles/Profiles";
-import Profile from "./components/profile/Profile";
-import NotFound from "./components/not-found/notfound";
-import Posts from "./components/posts/Posts";
-import Post from "./components/post/Post";
 
-import "./App.css";
+import CustomerDashboard from "./components/dashboard/customer/CustomerDashboard";
+import SupplierDashboard from "./components/dashboard/supplier/SupplierDashboard";
+
+import CreateCustomer from "./components/auth/customer/CreateUser";
+import CreateSupplier from "./components/auth/supplier/CreateUser";
+
+import LoginCustomer from "./components/auth/customer/LoginCustomer";
+import LoginSupplier from "./components/auth/supplier/LoginSupplier";
+
+import RegisterCustomer from "./components/auth/customer/RegisterCustomer";
+import RegisterSupplier from "./components/auth/supplier/RegisterSupplier";
+
+import ResetPassword from "./components/auth/customer/ResetPassword";
+import NewPassword from "./components/auth/customer/NewPassword";
+
+import store from "./store";
+import setAuthToken from "./utils/setAuthToken";
 
 //Check for token
 if (localStorage.jwtToken) {
   //Set the auth Token header auth
   setAuthToken(localStorage.jwtToken);
-  //Decode token and get user info and exp
+  //decode token and get user info
   const decoded = jwt_decode(localStorage.jwtToken);
   //Set user
+  console.log(decoded);
   store.dispatch(setCurrentUser(decoded));
-
   //Check for expired token
   const currentTime = Date.now / 1000;
   if (decoded.exp < currentTime) {
-    //Clear current Profile
-    store.dispatch(clearCurrentProfile());
-    //Logout the user
+    //Logout the User
     store.dispatch(logoutUser());
-    //Redirect to login
-    window.location.href("/login");
+    //Redirect to landing
+    window.location.href("/");
   }
 }
 
@@ -55,49 +61,57 @@ function App() {
         <div className="App">
           <Navbar />
           <Route exact path="/" component={Landing} />
+          <Route
+            exact
+            path="/authorization/customer"
+            component={CreateCustomer}
+          />
+          <Route
+            exact
+            path="/authorization/customer/login"
+            render={(props) => <LoginCustomer {...props} />}
+          />
+          <Route
+            exact
+            path="/authorization/customer/register"
+            component={RegisterCustomer}
+          />
+          <Route
+            exact
+            path="/authorization/supplier"
+            component={CreateSupplier}
+          />
+          <Route
+            exact
+            path="/authorization/supplier/login"
+            component={LoginSupplier}
+          />
+          <Route
+            exact
+            path="/authorization/supplier/register"
+            component={RegisterSupplier}
+          />
+          <Route
+            exact
+            path="/authorization/resetpassword"
+            component={ResetPassword}
+          />
+          <Route exact path="/resetpassword/:token" component={NewPassword} />
           <div className="container">
-            <Route exact path="/register" component={Register} />
-            <Route exact path="/login" component={Login} />
-            <Route exact path="/profiles" component={Profiles} />
-            <Route exact path="/profile/:handle" component={Profile} />
-            <Switch>
-              <PrivateRoute exact path="/dashboard" component={Dashboard} />
-            </Switch>
             <Switch>
               <PrivateRoute
                 exact
-                path="/create-profile"
-                component={CreateProfile}
+                path="/dashboard/customer"
+                component={CustomerDashboard}
               />
             </Switch>
             <Switch>
               <PrivateRoute
                 exact
-                path="/edit-profile"
-                component={EditProfile}
+                path="/dashboard/supplier"
+                component={SupplierDashboard}
               />
             </Switch>
-            <Switch>
-              <PrivateRoute
-                exact
-                path="/add-experience"
-                component={AddExperience}
-              />
-            </Switch>
-            <Switch>
-              <PrivateRoute
-                exact
-                path="/add-education"
-                component={AddEducation}
-              />
-            </Switch>
-            <Switch>
-              <PrivateRoute exact path="/feed" component={Posts} />
-            </Switch>
-            <Switch>
-              <PrivateRoute exact path="/post/:id" component={Post} />
-            </Switch>
-            <Route exact path="/not-found" component={NotFound} />
           </div>
           <Footer />
         </div>

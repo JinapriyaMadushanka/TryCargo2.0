@@ -1,42 +1,120 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const passport = require("passport");
-
-const users = require("./routes/api/users");
-const profile = require("./routes/api/profile");
-const posts = require("./routes/api/posts");
-
 const app = express();
 
-//Body parser middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+const cors = require("cors");
+const mongoose = require("mongoose");
 
-//DB Config
-const db = require("./config/keys").mongoURI;
+const bp = require("body-parser");
+const jwt = require("jsonwebtoken");
+app.use(cors());
+app.use(bp.urlencoded({ extended: false }));
+app.use(bp.json());
+app.use(require("morgan")("dev"));
 
-//Connect to MongoDB
-mongoose
-  .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+const port = process.env.PORT || 5000;
 
-//Passport middleware
+mongoose.Promise = global.Promise;
+//"mongodb://127.0.0.1:27017/authdb" ||
+const mongodbAPI = process.env.mongourl || require("./config/env").mongodbAPI; //keys.mongouri;
+app.use(require("morgan")("dev"));
+const jwtsecret = process.env.jwtsecret || require("./config/env").jwtsecret;
 
-app.use(passport.initialize());
+var jwthelperowner = (req, res, next) => {
+  console.log("helper .....");
+  const token = req.headers.authorization;
+  //  req.body.token || req.query.token || req.headers['x-access-token']
+  // decode token
+  // console.log(token);
+  if (token) {
+    // verifies secret and checks exp
+    jwt.verify(token, jwtsecret, function (err, decoded) {
+      if (err) {
+        console.log(err);
+        return res
+          .status(401)
+          .json({ error: true, message: "unauthorized_access" });
+      }
 
-//Passport Config
+      if (decoded.type === "owner") {
+        console.log("helper oK");
+        req.id = decoded.id;
+        next();
+      } else {
+        console.log("wrong user");
+        return res
+          .status(401)
+          .json({ error: true, message: "unauthorized_access" });
+      }
+    });
+  } else {
+    // if there is no token
+    // return an error
+    return res.status(403).send({
+      error: true,
+      message: "no_token_provided.",
+    });
+  }
+};
 
-require("./config/passport.js")(passport);
+var jwthelpercustomer = (req, res, next) => {
+  console.log("helper .....");
+  const token = req.headers.authorization;
+  //  req.body.token || req.query.token || req.headers['x-access-token']
+  // decode token
+  // console.log(token);
+  if (token) {
+    // verifies secret and checks exp
+    jwt.verify(token, jwtsecret, function (err, decoded) {
+      if (err) {
+        console.log(err);
+        return res
+          .status(401)
+          .json({ error: true, message: "unauthorized_access" });
+      }
 
-//Use Routes
-app.use("/api/users", users);
-app.use("/api/profile", profile);
-app.use("/api/posts", posts);
+      if (decoded.type === "customer") {
+        console.log("helper oK");
+        req.id = decoded.id;
+        next();
+      } else {
+        console.log("wrong user");
+        return res
+          .status(401)
+          .json({ error: true, message: "unauthorized_access" });
+      }
+    });
+  } else {
+    // if there is no token
+    // return an error
+    return res.status(403).send({
+      error: true,
+      message: "no_token_provided.",
+    });
+  }
+};
 
-const port = process.env.port || 5000;
+app.use("/auth", require("./routes/auth/auth.router")); //dont add jwt middleware
+app.use("/reg", require("./routes/register/register.router")); //dont add jwt middleware
+
+app.use(
+  "/apicustomer",
+  jwthelpercustomer,
+  require("./routes/api/apicustomer.router")
+);
+app.use("/apiowner", jwthelperowner, require("./routes/api/apiowner.router"));
+
+try {
+  mongoose.connect(
+    mongodbAPI,
+    { useNewUrlParser: true, useUnifiedTopology: true },
+    (err) => {
+      if (!err) console.log("connected to mongodb sucsessfully" + "👍");
+    }
+  );
+} catch (error) {
+  console.log(err);
+}
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log("listsing on " + port);
 });
